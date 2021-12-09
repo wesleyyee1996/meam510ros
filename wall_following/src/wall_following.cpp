@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include "robot_control/MotorDrive.h"
 #include <cmath>
+#include "sensor_msgs/LaserScan.h"
 
 class WallFollow {
 
@@ -22,6 +23,8 @@ class WallFollow {
 		float Kp = 0.3;
 
 		int stop_distance = 300;
+
+		int ydlidar_scan_range = 460;
 
 
 	void wall_follow_step(ros::Publisher &pub) {
@@ -63,12 +66,17 @@ class WallFollow {
 	}	
 };
 
+WallFollow wall_follow_obj;
 
+void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
+	
+}
 
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "wall_follow");
 	ros::NodeHandle nh;
 	ROS_INFO("Starting up Wall Following node!");
+	ros::Subscriber 
 	ros::Publisher wall_follow_pub = nh.advertise<robot_control::MotorDrive>("motor_control", 100);
 	ros::Rate loop_rate(10);
 
