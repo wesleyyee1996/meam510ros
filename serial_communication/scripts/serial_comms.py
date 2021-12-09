@@ -25,7 +25,9 @@ def serial_comms():
         if (data[0:6] == "beacon"):
             parsed_data = data[7:].split(',')
             angle = int(parsed_data[0])
+            print(angle)
             if angle < -75 or angle > 75:
+
                 sensor_data_msg.beacon_stalled = 1
             else:
                 sensor_data_msg.beacon_stalled = 0

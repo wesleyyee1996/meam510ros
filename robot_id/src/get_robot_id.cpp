@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 	ROS_INFO("robot_id node starting");
 	ros::Publisher pub = nh.advertise<std_msgs::String>("robot_id", 1000);
 
-	ros::Rate loop_rate(10);
+	ros::Rate loop_rate(3);
 
 	wiringPiSetupGpio();
 	pinMode(id_pin_1, INPUT);
@@ -27,6 +27,16 @@ int main(int argc, char **argv) {
 		int pin2_val = digitalRead(id_pin_2);
 		int pin3_val = digitalRead(id_pin_3);
 		int pin4_val = digitalRead(id_pin_4);
+
+		//ROS_INFO("Pin1: ");
+		//ROS_INFO("%i",pin1_val);
+		//ROS_INFO("Pin2: ");
+		//ROS_INFO("%i",pin2_val);
+		//ROS_INFO("Pin3: ");
+		//ROS_INFO("%i",pin3_val);
+
+		//ROS_INFO("Pin4: ");
+		//ROS_INFO("%i",pin4_val);
 
 		int robot_id = pin1_val*8 + pin2_val*4 + pin3_val*2 + pin4_val*1;
 

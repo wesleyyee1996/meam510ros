@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 	ros::init(argc, argv, "motor_control");
 	ros::NodeHandle nh;
 	ROS_INFO("Hello!");
-	ros::Subscriber sub = nh.subscribe("motor_control", 1000, motorControlCallback);
+	ros::Subscriber sub = nh.subscribe("motor_control", 100, motorControlCallback);
 	ros::spin();
       	return 0;
 }
