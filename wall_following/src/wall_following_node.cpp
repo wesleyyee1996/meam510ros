@@ -21,9 +21,9 @@ class WallFollow {
 		float prev_error = 0;
 		int integral = 0;
 
-		float Kp = 0.3;
+		float Kp = 1;
 
-		float stop_distance = 0.3;
+		float stop_distance = 0.15;
 		float min_valid_distance = 0.1;
 		float max_angular_vel = 0.5;
 		float default_linear_vel = 0.5;
@@ -37,26 +37,33 @@ class WallFollow {
 	}
 
 	void wall_follow_step(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
-		int dist_front = getAvgDistanceAtAngle(90,4, scan_msg);
-	        int dist_front_left_1 = getAvgDistanceAtAngle(100,4, scan_msg);
-       		 int dist_front_left_2 = getAvgDistanceAtAngle(110,4, scan_msg);
+		float dist_front = getAvgDistanceAtAngle(90,4, scan_msg);
+	        float dist_front_left_1 = getAvgDistanceAtAngle(100,4, scan_msg);
+       		float dist_front_left_2 = getAvgDistanceAtAngle(110,4, scan_msg);
 
 	        geometry_msgs::Twist drive_msg;
+
+		//ROS_INFO("Dist front: {%f}: ", dist_front);
 
 	        // if we need to turn at a corner
 	        if (dist_front < stop_distance && dist_front_left_1 < sqrt(pow(stop_distance,2)+pow(sin(10)*stop_distance,2)) && dist_front_left_2 < sqrt(pow(stop_distance,2))+pow(sin(20)*stop_distance,2)) {
         	        drive_msg.angular.z = -0.5;
                 	wall_follow_pub->publish(drive_msg);
+			ROS_INFO("Turning left! Dist front: %f", dist_front);
         	}
         	// if we are at a straight section of the wall
         	else {
                 	float dist_b = getAvgDistanceAtAngle(lower_angle, 4, scan_msg);
+			
 	                float dist_a = getAvgDistanceAtAngle(upper_angle, 4, scan_msg);
-	                float Dt_future = calculateFutureDistance(dist_a, dist_b, theta);
-	                float error = DESIRED_DISTANCE_FROM_WALL - Dt_future;
+	                Dt_future = calculateFutureDistance(dist_a, dist_b, theta);
+	                ROS_INFO("Future distance: %f", Dt_future);
+			float error = DESIRED_DISTANCE_FROM_WALL - Dt_future;
 	                float angular_vel = p_control(error);
+			drive_msg.linear.x = default_linear_vel;
 	                drive_msg.angular.z = angular_vel;
         	        wall_follow_pub->publish(drive_msg);
+			ROS_INFO("Straight wall, angular vel: {%f}", angular_vel);
 	        }
 
 	}
@@ -69,7 +76,7 @@ class WallFollow {
 			angular_vel = std::max(-max_angular_vel, angular_vel);
 		}
 		else {
-			angular_vel = std::max(max_angular_vel, angular_vel);
+			angular_vel = std::min(max_angular_vel, angular_vel);
 		}
 
 		prev_error = error;
@@ -112,6 +119,7 @@ class WallFollow {
 		if (cnt == 0) {
 			return 0;
 		}
+		//ROS_INFO("start_idx %i, end_idx %i, avg %f, cnt %i", start_idx, end_idx, avg, cnt);
 		return avg/cnt;
 
 	}
@@ -134,7 +142,7 @@ int main(int argc, char **argv) {
 	ros::init(argc, argv, "wall_follow");
 	ros::NodeHandle nh;
 	ROS_INFO("Starting up Wall Following node!");
-	ros::Subscriber laser_scan_sub = nh.subscribe("laser", 100, scanCallback);
+	ros::Subscriber laser_scan_sub = nh.subscribe("scan", 100, scanCallback);
 	ros::Publisher wall_follow_pub = nh.advertise<geometry_msgs::Twist>("motor_control", 100);
 	wall_follow_obj.save_pub(&wall_follow_pub);
 
