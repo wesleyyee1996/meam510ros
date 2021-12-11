@@ -3,7 +3,7 @@
 import rospy
 import socket
 
-from robot_control.msg import MotorDrive
+from geometry_msgs.msg import Twist
 from serial_communication.msg import SensorData
 from std_msgs.msg import String
 
@@ -29,7 +29,7 @@ def send_robot_location_callback(sensor_data):
 
 def get_robot_id(rob_id):
     test.robot_id = rob_id.data
-    rospy.loginfo("Received robot id "+test.robot_id)
+    #rospy.loginfo("Received robot id "+test.robot_id)
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -38,7 +38,7 @@ def get_local_ip():
     s.close()
 
 def udp_comms():
-    pub = rospy.Publisher('motor_control', MotorDrive, queue_size=10)
+    pub = rospy.Publisher('motor_control', Twist, queue_size=10)
     rospy.Subscriber("robot_id", String, get_robot_id)
     rospy.Subscriber("sensor_data", SensorData, send_robot_location_callback)
     rospy.init_node('udp_communication', anonymous=True)
@@ -53,11 +53,10 @@ def udp_comms():
 
     while not rospy.is_shutdown():
         data, addr = sock.recvfrom(1024)
-        #print(data)
         motor_drive_data = data.split(',')
-        motor_msg = MotorDrive()
-        motor_msg.y_speed = int(motor_drive_data[0])
-        motor_msg.x_speed = int(motor_drive_data[1])
+        motor_msg = Twist()
+        motor_msg.linear.x = float(motor_drive_data[1])
+        motor_msg.angular.z = float(motor_drive_data[0])
         pub.publish(motor_msg)
         
 

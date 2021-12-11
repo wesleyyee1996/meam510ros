@@ -3,6 +3,7 @@
 #include <wiringPi.h>
 #include <softPwm.h>
 #include "robot_control/MotorDrive.h"
+#include <geometry_msgs/Twist.h>
 
 class MotorControl {
 	public:
@@ -18,8 +19,6 @@ float led_freq = 50; // frequency for driving the motors
     int motor_drive_2b = 24; // pin 18
     int pwm_resolution = 8; // 8-bit resolution, which is 255
     int steering_angle = 0;
-    int left_out = 0;
-    int right_out = 0;
 
     MotorControl() {
 	    wiringPiSetupGpio();
@@ -52,44 +51,51 @@ void setMotor2_Backward() {
 }
 
 // handle left motor, controls are using arcade drive
-void handle_left(int y_val, int steering_angle) {
-  left_out = (y_val + steering_angle);
+void handle_left(float left_val) {
 
-  if (left_out < 0) {
+  if (left_val < 0) {
     setMotor1_Backward();
   }
   else {
     setMotor1_Forward();
   }
-  softPwmWrite(pwm_1, left_out);
+  softPwmWrite(pwm_1, abs(int(left_val)));
 }
 
 // handle right motor, controls are using arcade drive
-void handle_right(int y_val, int steering_angle) {
-  right_out = (y_val - steering_angle);
+void handle_right(float right_val) {
 
-  if (right_out < 0) {
+  if (right_val < 0) {
     setMotor2_Backward();
   }
   else {
     setMotor2_Forward();
   }
-  softPwmWrite(pwm_2, right_out);
+  softPwmWrite(pwm_2, abs(int(right_val)));
 }
 };
 
 MotorControl motor_control_obj;
 
-void motorControlCallback(const robot_control::MotorDrive::ConstPtr& msg) {
-	motor_control_obj.handle_left(msg->y_speed, msg->x_speed);
-	motor_control_obj.handle_right(msg->y_speed, msg->x_speed);
+void motorControlCallback(const geometry_msgs::Twist::ConstPtr& msg) {
+	float lin_vel = msg->linear.x;
+	float ang_vel = msg->angular.z;
+	
+	float vel_l = 255*(lin_vel - ang_vel);
+	float vel_r = 255*(lin_vel + ang_vel);
+
+	ROS_INFO("Velocity L {%f}: ",vel_l);
+	ROS_INFO("Velocity R {%f}: ",vel_r);
+
+	motor_control_obj.handle_left(vel_l);
+	motor_control_obj.handle_right(vel_r);
 }
 
 
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "motor_control");
 	ros::NodeHandle nh;
-	ROS_INFO("Hello!");
+	ROS_INFO("Motor control starting up!");
 	ros::Subscriber sub = nh.subscribe("motor_control", 100, motorControlCallback);
 	ros::spin();
       	return 0;
