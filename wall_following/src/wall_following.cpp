@@ -6,12 +6,12 @@
 class WallFollow {
 
 	public:
-		int DESIRED_DISTANCE_FROM_WALL = 200;
+		int DESIRED_DISTANCE_FROM_WALL =0.2; // meters
 		int lower_angle = 0;
 		int upper_angle = 60;
 
 		float Dt = 0;
-		float L = 200;
+		float L = 0.2;
 		float alpha = 0;
 		float Dt_future = 0;
 		int steering_angle = 0;
@@ -22,7 +22,7 @@ class WallFollow {
 
 		float Kp = 0.3;
 
-		int stop_distance = 300;
+		int stop_distance = 0.3;
 
 		int ydlidar_scan_range = 460;
 
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
 	ros::init(argc, argv, "wall_follow");
 	ros::NodeHandle nh;
 	ROS_INFO("Starting up Wall Following node!");
-	ros::Subscriber 
+	ros::Subscriber  
 	ros::Publisher wall_follow_pub = nh.advertise<robot_control::MotorDrive>("motor_control", 100);
 	ros::Rate loop_rate(10);
 
