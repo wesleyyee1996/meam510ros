@@ -8,6 +8,7 @@ from geometry_msgs.msg import TwistStamped
 # pose estimate msg from the Vive
 # stamped with a time so we know if it's an old reading or not
 robot_location_msg = TwistStamped()
+robot_location_msg.header.frame_id = 'vive'
 
 class Vector:
     """
