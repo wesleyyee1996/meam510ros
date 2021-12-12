@@ -21,14 +21,17 @@ class WallFollow {
 		float prev_error = 0;
 		int integral = 0;
 
-		float Kp = 1;
+		float Kp = 0.6;
 
-		float stop_distance = 0.15;
+
+		float stop_distance = 0.24;
 		float min_valid_distance = 0.1;
 		float max_angular_vel = 0.5;
-		float default_linear_vel = 0.5;
+		float default_linear_vel = 0.24;
 
 		int ydlidar_scan_range = 448;
+
+		int wall_following_on = 0;
 
 		ros::Publisher* wall_follow_pub;
 

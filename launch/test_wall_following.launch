@@ -1,6 +1,6 @@
 <launch>
 	<include file="$(find ydlidar_ros)/launch/X2L.launch"/>
 	<node name="wall_following_node" pkg="wall_following" type="wall_following_node" output="screen"/>
-
+	<node name="robot_control_node" pkg="robot_control" type="robot_control_node" output="screen"/>
 
 </launch>
