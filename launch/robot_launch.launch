@@ -7,4 +7,5 @@
 <!--<include file="$(find ydlidar_ros)/launch/X2L.launch"/>-->
 <!--<include file="$(find hector_slam_launch)/launch/tutorial.launch"/>-->
 <include file="$(find gbot_core)/launch/gbot.launch"/>
+<include file="$(find nav)/launch/move_base.launch"/>
 </launch>
