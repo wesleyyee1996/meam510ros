@@ -2,7 +2,6 @@
 #include <ros/ros.h>
 #include <wiringPi.h>
 #include <softPwm.h>
-#include "robot_control/MotorDrive.h"
 #include <geometry_msgs/Twist.h>
 
 class MotorControl {

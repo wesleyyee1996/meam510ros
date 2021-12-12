@@ -29,7 +29,7 @@ def send_robot_location_callback(sensor_data):
     """
     to_send = str(robo_id.robot_id) + "," + str(sensor_data.x1) + "," + str(sensor_data.y1)
 
-    rospy.loginfo("Sending robot location "+str(to_send))
+    #rospy.loginfo("Sending robot location "+str(to_send))
     socket_send_loc.sendto(to_send.encode(), ("192.168.0.255", 2510))
 
 

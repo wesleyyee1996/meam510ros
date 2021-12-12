@@ -4,6 +4,7 @@
   <node name="udp_comms" pkg="udp_communication" type="udp_comms.py" output="screen"/>
   <node name="robot_control_node" pkg="robot_control" type="robot_control_node" output="screen"/>
    
-<include file="$(find ydlidar_ros)/launch/X2L.launch"/>
-<include file="$(find hector_slam_launch)/launch/tutorial.launch"/>
+<!--<include file="$(find ydlidar_ros)/launch/X2L.launch"/>-->
+<!--<include file="$(find hector_slam_launch)/launch/tutorial.launch"/>-->
+<include file="$(find gbot_core)/launch/gbot.launch"/>
 </launch>
