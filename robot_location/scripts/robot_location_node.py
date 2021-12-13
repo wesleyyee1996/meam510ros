@@ -62,7 +62,7 @@ def sensor_data_callback(sensor_data):
         if not vector.isPositive():
             theta = (math.pi-theta) + math.pi
         
-        orientation = theta + math.pi/2
+        orientation = theta - math.pi/2
 
         robot_location_msg.twist.angular.z = orientation
 

@@ -19,6 +19,9 @@ float led_freq = 50; // frequency for driving the motors
     int pwm_resolution = 8; // 8-bit resolution, which is 255
     int steering_angle = 0;
 
+    float vel_l;
+    float vel_r;
+
     MotorControl() {
 	    wiringPiSetupGpio();
 	    softPwmCreate(pwm_1, 0, MAX_DUTY);
@@ -80,14 +83,12 @@ void motorControlCallback(const geometry_msgs::Twist::ConstPtr& msg) {
 	float lin_vel = msg->linear.x;
 	float ang_vel = msg->angular.z;
 	
-	float vel_l = 255*(lin_vel - ang_vel);
-	float vel_r = 255*(lin_vel + ang_vel);
+	motor_control_obj.vel_l = 255*(lin_vel - ang_vel);
+	motor_control_obj.vel_r = 255*(lin_vel + ang_vel);
 
-	ROS_INFO("Velocity L {%f}: ",vel_l);
-	ROS_INFO("Velocity R {%f}: ",vel_r);
+	ROS_INFO("Velocity L {%f}: ",motor_control_obj.vel_l);
+	ROS_INFO("Velocity R {%f}: ",motor_control_obj.vel_r);
 
-	motor_control_obj.handle_left(vel_l);
-	motor_control_obj.handle_right(vel_r);
 }
 
 
@@ -96,7 +97,16 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nh;
 	ROS_INFO("Motor control starting up!");
 	ros::Subscriber sub = nh.subscribe("motor_control", 100, motorControlCallback);
-	ros::spin();
+
+	ros::Rate loop_rate(50);
+
+	while (ros::ok()) {
+		motor_control_obj.handle_left(motor_control_obj.vel_l);
+		motor_control_obj.handle_right(motor_control_obj.vel_r);
+		loop_rate.sleep();
+		ros::spinOnce();
+	}
+
       	return 0;
 }
 

@@ -55,6 +55,7 @@ def get_local_ip():
 
 
 def get_can_locations():
+    print("test")
     can_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("192.168.0.255", 1510))
     
@@ -69,7 +70,7 @@ def get_can_locations():
             can_msg.linear.y = float(can_data[2])
             can_pub.publish(can_msg)
         except socket.timeout:
-            rospy.logerror("Can data timed out! Reconnecting")
+            rospy.logerr("Can data timed out! Reconnecting")
 
 def udp_comms():
 
@@ -89,6 +90,11 @@ def udp_comms():
     rate = rospy.Rate(50)
 
     get_local_ip()
+
+    try:
+        thread.start_new_thread(get_can_locations)
+    except:
+        rospy.logerr("Error starting get can data thread")
 
     # setup the socket for receiving commands from computer
     receive_commands_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
