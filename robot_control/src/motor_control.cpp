@@ -83,8 +83,8 @@ void motorControlCallback(const geometry_msgs::Twist::ConstPtr& msg) {
 	float lin_vel = msg->linear.x;
 	float ang_vel = msg->angular.z;
 	
-	motor_control_obj.vel_l = 255*(lin_vel - ang_vel);
-	motor_control_obj.vel_r = 255*(lin_vel + ang_vel);
+	motor_control_obj.vel_l = 512*(lin_vel - ang_vel);
+	motor_control_obj.vel_r = 512*(lin_vel + ang_vel);
 
 	ROS_INFO("Velocity L {%f}: ",motor_control_obj.vel_l);
 	ROS_INFO("Velocity R {%f}: ",motor_control_obj.vel_r);

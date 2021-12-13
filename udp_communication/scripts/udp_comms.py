@@ -53,25 +53,6 @@ def get_local_ip():
     s.close()
 
 
-
-def get_can_locations():
-    print("test")
-    can_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("192.168.0.255", 1510))
-    
-    can_pub = rospy.Publisher('can_location', Twist, queue_size=10)
-
-    while not rospy.is_shutdown():
-        try:
-            can_data, addr = can_socket.recvfrom(1024)
-            can_data = data.split(',')
-            can_msg = Twist()
-            can_msg.linear.x = float(can_data[1])
-            can_msg.linear.y = float(can_data[2])
-            can_pub.publish(can_msg)
-        except socket.timeout:
-            rospy.logerr("Can data timed out! Reconnecting")
-
 def udp_comms():
 
     # set up publisher to motor_control topic
@@ -87,14 +68,9 @@ def udp_comms():
     rospy.init_node('udp_communication', anonymous=True)
 
     # set the loop rate to 50 Hz
-    rate = rospy.Rate(50)
+    rate = rospy.Rate(10)
 
     get_local_ip()
-
-    try:
-        thread.start_new_thread(get_can_locations)
-    except:
-        rospy.logerr("Error starting get can data thread")
 
     # setup the socket for receiving commands from computer
     receive_commands_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -115,6 +91,7 @@ def udp_comms():
             pub.publish(motor_msg)
         except socket.timeout:
             rospy.logerror("Control data from computer timed out! Reconnecting.")
+        rate.sleep()
         
 
 if __name__ == '__main__':

@@ -18,10 +18,10 @@ def serial_comms():
         data = ser.readline()
         if (data[0:4] == "Vive"):
             parsed_data = data[5:].split(',')
-            sensor_data_msg.x1 = int(parsed_data[0])
-            sensor_data_msg.y1 = -int(parsed_data[1])
-            sensor_data_msg.x2 = int(parsed_data[2])
-            sensor_data_msg.y2 = -int(parsed_data[3])
+            sensor_data_msg.x2 = int(parsed_data[0])
+            sensor_data_msg.y2 = int(parsed_data[1])
+            sensor_data_msg.x1 = int(parsed_data[2])
+            sensor_data_msg.y1 = int(parsed_data[3])
         if (data[0:6] == "beacon"):
             parsed_data = data[7:].split(',')
             angle = int(parsed_data[0])
@@ -31,6 +31,7 @@ def serial_comms():
             else:
                 sensor_data_msg.beacon_stalled = 0
             sensor_data_msg.beacon_angle = angle
+            sensor_data_msg.beacon_stalled = int(parsed_data[1])
             
         pub.publish(sensor_data_msg)
 

@@ -57,13 +57,19 @@ def sensor_data_callback(sensor_data):
         vector = Vector(sensor_data.x1, sensor_data.y1, sensor_data.x2, sensor_data.y2)
         zero_vec = Vector(0, 0, 1, 0)
         dot_prod = dot_product(vector, zero_vec)
-        theta = math.acos(dot_prod/(vector.norm()*zero_vec.norm()))
+        theta = math.atan2(vector.y,vector.x)
 
-        if not vector.isPositive():
-            theta = (math.pi-theta) + math.pi
-        
+        theta += math.pi
+
+        theta = 2*math.pi-theta
+
+        #print(theta)
+
         orientation = theta - math.pi/2
-
+        if orientation < 0:
+            orientation += 2*math.pi
+        
+        orientation = 2*math.pi - orientation
         robot_location_msg.twist.angular.z = orientation
 
 
