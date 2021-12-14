@@ -22,6 +22,8 @@ float led_freq = 50; // frequency for driving the motors
     float vel_l;
     float vel_r;
 
+    ros::Time last_update_time;
+
     MotorControl() {
 	    wiringPiSetupGpio();
 	    softPwmCreate(pwm_1, 0, MAX_DUTY);
@@ -86,8 +88,10 @@ void motorControlCallback(const geometry_msgs::Twist::ConstPtr& msg) {
 	motor_control_obj.vel_l = 512*(lin_vel - ang_vel);
 	motor_control_obj.vel_r = 512*(lin_vel + ang_vel);
 
-	ROS_INFO("Velocity L {%f}: ",motor_control_obj.vel_l);
-	ROS_INFO("Velocity R {%f}: ",motor_control_obj.vel_r);
+	motor_control_obj.last_update_time = ros::Time::now();
+	//ROS_INFO("Velocity L {%f}: ",motor_control_obj.vel_l);
+	//
+	//ROS_INFO("Velocity R {%f}: ",motor_control_obj.vel_r);
 
 }
 
@@ -96,17 +100,27 @@ int main(int argc, char **argv) {
 	ros::init(argc, argv, "motor_control");
 	ros::NodeHandle nh;
 	ROS_INFO("Motor control starting up!");
-	ros::Subscriber sub = nh.subscribe("motor_control", 100, motorControlCallback);
+	ros::Subscriber sub = nh.subscribe("motor_control", 1, motorControlCallback);
 
 	ros::Rate loop_rate(50);
+	motor_control_obj.last_update_time = ros::Time::now();
 
 	while (ros::ok()) {
+		ros::Duration elapsed_time = ros::Time::now() - motor_control_obj.last_update_time;
+		if (elapsed_time.toSec() > 1) {
+			motor_control_obj.vel_l = 0;
+			motor_control_obj.vel_r = 0;
+		}
 		motor_control_obj.handle_left(motor_control_obj.vel_l);
-		motor_control_obj.handle_right(motor_control_obj.vel_r);
-		loop_rate.sleep();
-		ros::spinOnce();
+                motor_control_obj.handle_right(motor_control_obj.vel_r);
+                loop_rate.sleep();
+                ros::spinOnce();
 	}
 
+	// when we exit, turn off the motors
+	;
+	softPwmWrite(motor_control_obj.pwm_1, 0);
+	softPwmWrite(motor_control_obj.pwm_2, 0);
       	return 0;
 }
 

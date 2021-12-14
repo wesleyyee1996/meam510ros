@@ -36,22 +36,31 @@ def save_beacon_info(sensor_data):
 
 def save_obstacle_distance(scan_data):
     # record the obstacle distance stright infront of the robot
-    for i in range (107,118):
-        g.obstacle_distance += scan_data.ranges[i]/11
+    avg = 0
+    cnt = 0
+    for i in range (110,118):
+        if scan_data.ranges[i] > 0:
+            avg += scan_data.ranges[i]
+            cnt += 1
+        #print(i, scan_data.ranges[i])
 
-
-
+    if cnt == 0:
+        avg = 0
+    else:
+        avg /= cnt
+    g.obstacle_distance = avg
+    #print(g.obstacle_distance)
 
 
 def move_to_beacon():
 
     rospy.init_node("move_to_beacon", anonymous = True)
-    pub = rospy.Publisher("motor_control", Twist, queue_size = 10)
+    pub = rospy.Publisher("motor_control", Twist, queue_size = 1)
     #rospy.Subscriber("vive_pose", TwistStamped, save_robot_angle)
     rospy.Subscriber("sensor_data", SensorData, save_beacon_info)
     rospy.Subscriber("scan", LaserScan, save_obstacle_distance)
 
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(50)
 
     while not rospy.is_shutdown():
         
@@ -59,22 +68,22 @@ def move_to_beacon():
 
             motor_msg = Twist()
 
-            if g.beacon_sensing != 0:
-                if g.beacon_angle < -10:
+            if g.beacon_angle != 0:
+                if g.beacon_angle == 1:
                     motor_msg.linear.x = 0
-                    motor_msg.angular.z = 0.35 + 0.1*g.beacon_angle/90
-                elif g.beacon_angle > 10:
+                    motor_msg.angular.z = 0.1
+                elif g.beacon_angle == 2:
                     motor_msg.linear.x = 0
-                    motor_msg.angular.z = -0.35 + 0.1*g.beacon_angle/90
+                    motor_msg.angular.z = -0.1
                 else:
                     motor_msg.angular.z = 0
                     if g.obstacle_distance > 0.2:
-                        motor_msg.linear.x = min(0.35, g.obstacle_distance-0.1)
+                        motor_msg.linear.x = min(0.2, g.obstacle_distance-0.05)
                     else:
                         motor_msg.linear.x = 0
 
             else:
-                motor_msg.angular.z = 0.35
+                motor_msg.angular.z = 0.1
                 motor_msg.linear.x = 0
 
 

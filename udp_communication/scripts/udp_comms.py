@@ -7,6 +7,7 @@ import thread
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import TwistStamped
 from std_msgs.msg import String
+from std_msgs.msg import Bool
 
 UDP_IP = ""
 UDP_PORT_REC = 2522
@@ -20,18 +21,21 @@ class GetRobotId:
 robo_id = GetRobotId()
 
 # socket for sending robot location as broadcast
-socket_send_loc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-socket_send_loc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+socket_send_loc = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+socket_send_loc.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+socket_send_loc.bind((UDP_IP,0))
 
 def send_robot_location_callback(vive_data):
     """
     every time we receive sensor data from the serial_communication
     ROS node, we package it up along with the robot ID and broadcast
     """
-    to_send = str(robo_id.robot_id) + "," + str(vive_data.twist.linear.x) + "," + str(vive_data.twist.linear.y)
+    to_send = str(robo_id.robot_id) + "," + str(int(vive_data.twist.linear.x)) + "," + str(int(vive_data.twist.linear.y)) + str(0)
 
+    
     #rospy.loginfo("Sending robot location "+str(to_send))
-    socket_send_loc.sendto(to_send.encode(), ("192.168.0.255", 2510))
+    socket_send_loc.sendto(to_send.encode(), ("192.168.1.255", 2510))
+    print(to_send)
 
 
 def get_robot_id(rob_id):
@@ -58,11 +62,14 @@ def udp_comms():
     # set up publisher to motor_control topic
     pub = rospy.Publisher('motor_control', Twist, queue_size=10)
 
+    # set up publisher to led_signal topic
+    led_signal_pub = rospy.Publisher('led_signal', Bool, queue_size=10)
+
     # set up subscriber callback function for robot_id topic
     rospy.Subscriber("robot_id", String, get_robot_id)
 
     # set up subscriber callback function for sensor_data topic
-    rospy.Subscriber("vive_data", TwistStamped, send_robot_location_callback)
+    rospy.Subscriber("vive_pose", TwistStamped, send_robot_location_callback)
     
     # initialize the udp_communication node
     rospy.init_node('udp_communication', anonymous=True)
@@ -89,8 +96,13 @@ def udp_comms():
             motor_msg.linear.x = float(motor_drive_data[1])
             motor_msg.angular.z = float(motor_drive_data[0])
             pub.publish(motor_msg)
+
+            # also publish to led signal topic
+            led_signal_msg = Bool()
+            led_signal_msg.data = True
+            led_signal_pub.publish(led_signal_msg)
         except socket.timeout:
-            rospy.logerror("Control data from computer timed out! Reconnecting.")
+            rospy.logerr("UDP Comms: Haven't received manual control data from computer! Reconnecting.")
         rate.sleep()
         
 

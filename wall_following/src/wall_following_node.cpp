@@ -24,10 +24,10 @@ class WallFollow {
 		float Kp = 0.6;
 
 
-		float stop_distance = 0.24;
+		float stop_distance = 0.3;
 		float min_valid_distance = 0.1;
 		float max_angular_vel = 0.5;
-		float default_linear_vel = 0.24;
+		float default_linear_vel = 0.2;
 
 		int ydlidar_scan_range = 448;
 
@@ -50,7 +50,7 @@ class WallFollow {
 
 	        // if we need to turn at a corner
 	        if (dist_front < stop_distance && dist_front_left_1 < sqrt(pow(stop_distance,2)+pow(sin(10)*stop_distance,2)) && dist_front_left_2 < sqrt(pow(stop_distance,2))+pow(sin(20)*stop_distance,2)) {
-        	        drive_msg.angular.z = -0.5;
+        	        drive_msg.angular.z = -0.3;
                 	wall_follow_pub->publish(drive_msg);
 			ROS_INFO("Turning left! Dist front: %f", dist_front);
         	}
@@ -94,7 +94,7 @@ class WallFollow {
 	// about 450 instead of 360
 	int getScanIdx(int clockwise_angle) {
 		float scaling_factor = ydlidar_scan_range/360; 
-		int ccw_angle = 360 - clockwise_angle;
+		int ccw_angle = clockwise_angle;
 		int scan_idx = ccw_angle * scaling_factor;
 		return scan_idx;
 	}

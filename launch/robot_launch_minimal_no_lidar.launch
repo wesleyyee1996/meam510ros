@@ -1,9 +1,11 @@
 <launch>
   <node name="robot_id_node" pkg="robot_id" type="robot_id_node" output="screen"/>
+  <node name="led_no_input_signal" pkg="led_no_input_signal" type="led_no_input_signal" output="screen"/>
   <node name="serial_comms" pkg="serial_communication" type="serial_comms.py" output="screen"/>
   <node name="udp_comms" pkg="udp_communication" type="udp_comms.py" output="screen"/>
   <node name="robot_control_node" pkg="robot_control" type="robot_control_node" output="screen"/>
    
+  <node name="robot_location_node" pkg="robot_location" type="robot_location_node.py" output="screen"/>
 <!--<include file="$(find ydlidar_ros)/launch/X2L.launch"/>-->
 <!--<include file="$(find hector_slam_launch)/launch/tutorial.launch"/>-->
 <!--<include file="$(find gbot_core)/launch/gbot.launch"/>-->

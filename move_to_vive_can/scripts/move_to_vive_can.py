@@ -68,18 +68,19 @@ def save_vive_data(vive_data):
 
 def save_can_data(can_data):
     # record the can data each time when it recieved 
-    if not g.has_data():
-        g.can_x = can_data.twist.linear.x
-        g.can_y = can_data.twist.linear.y
-        g.can_id = can_data.object_id
-    elif g.can_id == can_data.object_id:
-        g.can_x = can_data.twist.linear.x
-        g.can_y = can_data.twist.linear.y
+    print(can_data)
+    #if not g.has_data():
+    g.can_x = can_data.twist.linear.x
+    g.can_y = can_data.twist.linear.y
+    g.can_id = can_data.object_id
+    #elif g.can_id == can_data.object_id:
+    #    g.can_x = can_data.twist.linear.x
+    #    g.can_y = can_data.twist.linear.y
 
 def save_obstacle_distance(scan_data):
     # record the obstacle distance stright infront of th robote
-    for i in range( 107, 118):
-        g.obstacle_distance += scan_data.ranges[i]/11
+    for i in range( 112, 116):
+        g.obstacle_distance += scan_data.ranges[i]/4
 
 
 
@@ -93,12 +94,12 @@ def driving_direction():
 def listener():
 
     rospy.init_node("move_to_vive_can", anonymous = True)
-    pub = rospy.Publisher("motor_control", Twist, queue_size = 10)
+    pub = rospy.Publisher("motor_control", Twist, queue_size = 1)
     rospy.Subscriber("vive_pose", TwistStamped, save_vive_data)
     rospy.Subscriber("can_location", ObjectLocation, save_can_data)
     rospy.Subscriber("scan", LaserScan, save_obstacle_distance)
 
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(50)
 
     turn_on_motors = False
 
@@ -121,10 +122,10 @@ def listener():
             
             if angle_diff > 0.1 and distance > 100:
                 motor_msg.linear.x = 0
-                motor_msg.angular.z = 0.15+0.2*angle_diff/math.pi
+                motor_msg.angular.z = 0.1+0.02*angle_diff/math.pi
             elif angle_diff < -0.1 and distance > 100:
                 motor_msg.linear.x = 0
-                motor_msg.angular.z = -0.15+0.2*angle_diff/math.pi
+                motor_msg.angular.z = -0.1+0.02*angle_diff/math.pi
             else:
                 motor_msg.angular.z = 0
                 #turn_on_motors = False
