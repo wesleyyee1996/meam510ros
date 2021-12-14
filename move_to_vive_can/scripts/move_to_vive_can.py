@@ -7,6 +7,7 @@ from geometry_msgs.msg import Twist
 from geometry_msgs.msg import TwistStamped
 from sensor_msgs.msg import LaserScan
 from get_can_locations.msg import ObjectLocation
+from std_msgs.msg import Bool
 
 class Global:
 # create variable to save our robot(vive)  and cans coordinate value
@@ -95,9 +96,11 @@ def listener():
 
     rospy.init_node("move_to_vive_can", anonymous = True)
     pub = rospy.Publisher("motor_control", Twist, queue_size = 1)
+    actuate_gripper_pub = rospy.Publisher("actuate_gripper", Bool, queue_size=1)
     rospy.Subscriber("vive_pose", TwistStamped, save_vive_data)
-    rospy.Subscriber("can_location", ObjectLocation, save_can_data)
+    rospy.Subscriber("target_can_location", ObjectLocation, save_can_data)
     rospy.Subscriber("scan", LaserScan, save_obstacle_distance)
+    
 
     rate = rospy.Rate(50)
 
@@ -113,12 +116,9 @@ def listener():
 
             motor_msg = Twist()
 
-            #print("Angle ", angle)
             angle_float = float(angle) 
             vive_float = float(g.vive_angle)
             angle_diff = angle_float - vive_float
-            print("diff 1: ", angle_diff)
-            print("Desired: ", angle_float, "Curr: ", vive_float)
             
             if angle_diff > 0.1 and distance > 100:
                 motor_msg.linear.x = 0
@@ -128,22 +128,19 @@ def listener():
                 motor_msg.angular.z = -0.1+0.02*angle_diff/math.pi
             else:
                 motor_msg.angular.z = 0
-                #turn_on_motors = False
-                
-            
-            #if not turn_on_motors:
-                #motor_msg.angular.z = 0.2*angle_diff/math.pi
                 
                 if distance > 100:
                     motor_msg.linear.x = min(0.2, (distance-100)*0.001)
+                # we have reached the can, so grab the gripper 
                 else:
                     motor_msg.linear.x = 0
-                    #motor_msg.angular.z = 0
-            #motor_msg.angular.z = 0
+                    grab_can_msg = Bool()
+                    grab_can_msg.data = True
+                    actuate_gripper_pub.pub(grab_can_msg)
+
             pub.publish(motor_msg)
             
         else:
-            #print("Hasn't gotten good data")
             pass
 
         rate.sleep()

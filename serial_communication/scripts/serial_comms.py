@@ -45,6 +45,7 @@ def serial_comms():
         sensor_data_msg.beacon_stalled = beacon_data
         """ 
         pub.publish(sensor_data_msg)
+        rate.sleep()
 
 if __name__ == '__main__':
     try:
