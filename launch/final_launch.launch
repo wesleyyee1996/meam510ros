@@ -1,0 +1,17 @@
+<launch>
+<node name="robot_id_node" pkg="robot_id" type="robot_id_node" output="screen"/>
+
+  <include file="$(find ydlidar_ros)/launch/X2L.launch"/>
+<node name="led_no_input_signal" pkg="led_no_input_signal" type="led_no_input_signal" output="screen"/>
+ <node name="serial_comms" pkg="serial_communication" type="serial_comms.py" output="screen"/>
+  <node name="udp_comms" pkg="udp_communication" type="udp_comms.py" output="screen"/>
+  <node name="robot_control_node" pkg="robot_control" type="robot_control_node" output="screen"/>
+
+  <node name="robot_location_node" pkg="robot_location" type="robot_location_node.py" output="screen"/>
+  <node name="actuate_gripper" pkg="actuate_gripper" type="actuate_gripper" output="screen"/>
+  <node name="move_to_beacon" pkg="move_to_beacon" type="move_to_beacon.py" output="screen"/>
+  <node name="move_to_vive_can" pkg="move_to_vive_can" type="move_to_vive_can.py" output="screen"/>
+  <node name="wall_following_node" pkg="wall_following" type="wall_following_node" output="screen"/>
+  <node name="decision_making" pkg="decision_making" type="decision_making_node.py" output="screen"/>
+  <node name="website" pkg="website" type="website_node.py"/>
+</launch>

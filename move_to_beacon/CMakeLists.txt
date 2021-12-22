@@ -9,9 +9,11 @@ project(move_to_beacon)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  decision_making
   rospy
   sensor_msgs
   serial_communication
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -106,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES move_to_beacon
-  CATKIN_DEPENDS geometry_msgs rospy sensor_msgs serial_communication
+  CATKIN_DEPENDS decision_making geometry_msgs rospy sensor_msgs serial_communication std_msgs
 #  DEPENDS system_lib
 )
 

@@ -50,6 +50,7 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>geometry_msgs</build_depend>
+  <build_depend>decision_making</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>get_can_locations</build_depend>
@@ -57,6 +58,7 @@
   <build_export_depend>robot_control</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>decision_making</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>get_can_locations</exec_depend>

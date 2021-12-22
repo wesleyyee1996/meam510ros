@@ -7,6 +7,8 @@ from geometry_msgs.msg import Twist
 from geometry_msgs.msg import TwistStamped
 from sensor_msgs.msg import LaserScan
 from serial_communication.msg import SensorData
+from decision_making.msg import ModeActivation
+from std_msgs.msg import Bool
 
 class Global:
     # create variable to save listened info
@@ -15,6 +17,7 @@ class Global:
         self.beacon_angle = 600
         self.beacon_sensing = 600
         self.obstacle_distance = 0
+        self.isActivated = False
 
     def has_data(self):
         if self.beacon_angle != 600: 
@@ -51,46 +54,54 @@ def save_obstacle_distance(scan_data):
     g.obstacle_distance = avg
     #print(g.obstacle_distance)
 
+def modeActivationCallback(msg):
+    g.isActivated = msg.move_to_beacon_on
 
 def move_to_beacon():
 
     rospy.init_node("move_to_beacon", anonymous = True)
     pub = rospy.Publisher("motor_control", Twist, queue_size = 1)
+    gripper_pub = rospy.Publisher("actuate_gripper", Bool, queue_size = 1)
     #rospy.Subscriber("vive_pose", TwistStamped, save_robot_angle)
     rospy.Subscriber("sensor_data", SensorData, save_beacon_info)
     rospy.Subscriber("scan", LaserScan, save_obstacle_distance)
+    rospy.Subscriber("mode_activation", ModeActivation, modeActivationCallback)
 
     rate = rospy.Rate(50)
 
     while not rospy.is_shutdown():
         
-        if g.has_data():
+        if g.isActivated:
+            if g.has_data():
 
-            motor_msg = Twist()
+                motor_msg = Twist()
 
-            if g.beacon_angle != 0:
-                if g.beacon_angle == 1:
-                    motor_msg.linear.x = 0
-                    motor_msg.angular.z = 0.1
-                elif g.beacon_angle == 2:
-                    motor_msg.linear.x = 0
-                    motor_msg.angular.z = -0.1
-                else:
-                    motor_msg.angular.z = 0
-                    if g.obstacle_distance > 0.2:
-                        motor_msg.linear.x = min(0.2, g.obstacle_distance-0.05)
-                    else:
+                if g.beacon_angle != 0:
+                    if g.beacon_angle == 1:
                         motor_msg.linear.x = 0
+                        motor_msg.angular.z = 0.1
+                    elif g.beacon_angle == 2:
+                        motor_msg.linear.x = 0
+                        motor_msg.angular.z = -0.1
+                    else:
+                        motor_msg.angular.z = 0
+                        if g.obstacle_distance > 0.2:
+                            motor_msg.linear.x = min(0.2, g.obstacle_distance-0.05)
+                        else:
+                            motor_msg.linear.x = 0
+                            actuate_gripper_msg = Bool()
+                            actuate_gripper_msg.data = True
+                            gripper_pub.publish(actuate_gripper_msg)
+
+                else:
+                    motor_msg.angular.z = 0.09
+                    motor_msg.linear.x = 0
+
+
+                pub.publish(motor_msg)
 
             else:
-                motor_msg.angular.z = 0.1
-                motor_msg.linear.x = 0
-
-
-            pub.publish(motor_msg)
-
-        else:
-            pass
+                pass
 
         rate.sleep()
 

@@ -51,7 +51,6 @@ def make_decision():
 
     pub = rospy.Publisher("target_can_location", ObjectLocation, queue_size=1)
 
-    rospy.Subscriber("autonomous_on", Bool, autonomousModeCallback)
     rospy.Subscriber("can_location", ObjectLocation, objectLocationCallback)
     rospy.Subscriber("robot_side", Bool, robotSideCallback)
     rospy.Subscriber("mode_activations", ModeActivation, modeActivationCallback)
@@ -63,6 +62,7 @@ def make_decision():
 
             target_can_id = determineClosestCanToCenter()
 
+            rospy.loginfo("Target Can ID: %i", target_can_id)
             target_can_msg.object_id = target_can_id
             target_can_msg.twist.linear.x = move_to_can_logic.cans_on_field[target_can_id][0]
             target_can_msg.twist.linear.y = move_to_can_logic.cans_on_field[target_can_id][1]
@@ -74,6 +74,6 @@ def make_decision():
 
 if __name__ == '__main__':
     try:
-        make_decisions()
+        make_decision()
     except rospy.ROSInterruptException:
         pass

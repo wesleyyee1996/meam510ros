@@ -9,6 +9,7 @@ project(move_to_vive_can)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  decision_making
   rospy
   sensor_msgs
   get_can_locations
@@ -107,7 +108,7 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES move_to_vive_can
 
-CATKIN_DEPENDS geometry_msgs rospy sensor_msgs get_can_locations
+CATKIN_DEPENDS decision_making geometry_msgs rospy sensor_msgs get_can_locations
 #  DEPENDS system_lib
 )
 

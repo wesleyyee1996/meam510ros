@@ -2,6 +2,7 @@
 #include "geometry_msgs/Twist.h"
 #include <cmath>
 #include "sensor_msgs/LaserScan.h"
+#include "decision_making/ModeActivation.h"
 
 class WallFollow {
 
@@ -24,9 +25,9 @@ class WallFollow {
 		float Kp = 0.6;
 
 
-		float stop_distance = 0.3;
+		float stop_distance = 0.4;
 		float min_valid_distance = 0.1;
-		float max_angular_vel = 0.5;
+		float max_angular_vel = 0.15;
 		float default_linear_vel = 0.2;
 
 		int ydlidar_scan_range = 448;
@@ -35,40 +36,45 @@ class WallFollow {
 
 		ros::Publisher* wall_follow_pub;
 
+		bool isActivated = false;
+
 	void save_pub(ros::Publisher* pub_ptr) {
 		wall_follow_pub = pub_ptr;
 	}
 
 	void wall_follow_step(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
-		float dist_front = getAvgDistanceAtAngle(90,4, scan_msg);
-	        float dist_front_left_1 = getAvgDistanceAtAngle(100,4, scan_msg);
-       		float dist_front_left_2 = getAvgDistanceAtAngle(110,4, scan_msg);
-
-	        geometry_msgs::Twist drive_msg;
-
-		//ROS_INFO("Dist front: {%f}: ", dist_front);
-
-	        // if we need to turn at a corner
-	        if (dist_front < stop_distance && dist_front_left_1 < sqrt(pow(stop_distance,2)+pow(sin(10)*stop_distance,2)) && dist_front_left_2 < sqrt(pow(stop_distance,2))+pow(sin(20)*stop_distance,2)) {
-        	        drive_msg.angular.z = -0.3;
-                	wall_follow_pub->publish(drive_msg);
-			ROS_INFO("Turning left! Dist front: %f", dist_front);
-        	}
-        	// if we are at a straight section of the wall
-        	else {
-                	float dist_b = getAvgDistanceAtAngle(lower_angle, 4, scan_msg);
+		if (isActivated) {
 			
-	                float dist_a = getAvgDistanceAtAngle(upper_angle, 4, scan_msg);
-	                Dt_future = calculateFutureDistance(dist_a, dist_b, theta);
-	                ROS_INFO("Future distance: %f", Dt_future);
-			float error = DESIRED_DISTANCE_FROM_WALL - Dt_future;
-	                float angular_vel = p_control(error);
-			drive_msg.linear.x = default_linear_vel;
-	                drive_msg.angular.z = angular_vel;
-        	        wall_follow_pub->publish(drive_msg);
-			ROS_INFO("Straight wall, angular vel: {%f}", angular_vel);
-	        }
+		
+			float dist_front = getAvgDistanceAtAngle(90,4, scan_msg);
+			float dist_front_left_1 = getAvgDistanceAtAngle(100,4, scan_msg);
+			float dist_front_left_2 = getAvgDistanceAtAngle(110,4, scan_msg);
 
+			geometry_msgs::Twist drive_msg;
+
+			//ROS_INFO("Dist front: {%f}: ", dist_front);
+
+			// if we need to turn at a corner
+			if (dist_front < stop_distance && dist_front_left_1 < sqrt(pow(stop_distance,2)+pow(sin(10)*stop_distance,2)) && dist_front_left_2 < sqrt(pow(stop_distance,2))+pow(sin(20)*stop_distance,2)) {
+				drive_msg.angular.z = -0.15;
+				wall_follow_pub->publish(drive_msg);
+				ROS_INFO("Turning left! Dist front: %f", dist_front);
+			}
+			// if we are at a straight section of the wall
+			else {
+				float dist_b = getAvgDistanceAtAngle(lower_angle, 4, scan_msg);
+				
+				float dist_a = getAvgDistanceAtAngle(upper_angle, 4, scan_msg);
+				Dt_future = calculateFutureDistance(dist_a, dist_b, theta);
+				//ROS_INFO("Future distance: %f", Dt_future);
+				float error = DESIRED_DISTANCE_FROM_WALL - Dt_future;
+				float angular_vel = p_control(error);
+				drive_msg.linear.x = default_linear_vel;
+				drive_msg.angular.z = angular_vel;
+				wall_follow_pub->publish(drive_msg);
+				//ROS_INFO("Straight wall, angular vel: {%f}", angular_vel);
+			}
+		}
 	}
 
 	// proportional control
@@ -140,6 +146,9 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
 	wall_follow_obj.wall_follow_step(scan_msg);
 }
 
+void modeActivationCallback(const decision_making::ModeActivation::ConstPtr& msg) {
+	wall_follow_obj.isActivated = msg->wall_following_on;
+}
 
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "wall_follow");
@@ -147,6 +156,7 @@ int main(int argc, char **argv) {
 	ROS_INFO("Starting up Wall Following node!");
 	ros::Subscriber laser_scan_sub = nh.subscribe("scan", 100, scanCallback);
 	ros::Publisher wall_follow_pub = nh.advertise<geometry_msgs::Twist>("motor_control", 100);
+	ros::Subscriber mode_active_sub = nh.subscribe("mode_activation", 1, modeActivationCallback);
 	wall_follow_obj.save_pub(&wall_follow_pub);
 
 	ros::spin();

@@ -32,7 +32,7 @@ def serial_comms():
                 pass
         if (data[0:6] == "Beacon"):
             parsed_data = data[7:].split(',')
-            sensor_data_msg.beacon_angle = 0#int(parsed_data[0])
+            sensor_data_msg.beacon_angle = int(parsed_data[0])
         """
         data, addr = sensor_data_socket.recvfrom(1024)
         split_data = data.split(';')

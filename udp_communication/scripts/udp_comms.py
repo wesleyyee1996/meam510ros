@@ -35,7 +35,6 @@ def send_robot_location_callback(vive_data):
     
     #rospy.loginfo("Sending robot location "+str(to_send))
     socket_send_loc.sendto(to_send.encode(), ("192.168.1.255", 2510))
-    print(to_send)
 
 
 def get_robot_id(rob_id):

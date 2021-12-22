@@ -6,6 +6,7 @@
   <node name="robot_control_node" pkg="robot_control" type="robot_control_node" output="screen"/>
    
   <node name="robot_location_node" pkg="robot_location" type="robot_location_node.py" output="screen"/>
+  <node name="actuate_gripper" pkg="actuate_gripper" type="actuate_gripper" output="screen"/>
 <!--<include file="$(find ydlidar_ros)/launch/X2L.launch"/>-->
 <!--<include file="$(find hector_slam_launch)/launch/tutorial.launch"/>-->
 <!--<include file="$(find gbot_core)/launch/gbot.launch"/>-->

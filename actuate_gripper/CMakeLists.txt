@@ -9,6 +9,7 @@ project(actuate_gripper)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   std_msgs
+  decision_making
   roscpp
 )
 
@@ -104,7 +105,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES actuate_gripper -lwiringPi
-  CATKIN_DEPENDS std_msgs roscpp
+  CATKIN_DEPENDS std_msgs roscpp decision_making
   DEPENDS system_lib
 )
 
