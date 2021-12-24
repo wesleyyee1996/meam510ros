@@ -26,10 +26,6 @@ class Global:
 
 g = Global()
 
-#def save_robot_angle(vive_pose):
-    # record robot angle
-    #g.robot_angle = vive_data.twist.angluar.z 
-
 
 def save_beacon_info(sensor_data):
     # record beacon info
@@ -45,24 +41,26 @@ def save_obstacle_distance(scan_data):
         if scan_data.ranges[i] > 0:
             avg += scan_data.ranges[i]
             cnt += 1
-        #print(i, scan_data.ranges[i])
 
     if cnt == 0:
         avg = 0
     else:
         avg /= cnt
     g.obstacle_distance = avg
-    #print(g.obstacle_distance)
 
 def modeActivationCallback(msg):
     g.isActivated = msg.move_to_beacon_on
 
 def move_to_beacon():
+    """
+    Functionality for moving to the beacon. We receive messages from the sensor_data topic which contains
+    whether beacon is on the left(1), right(2), or is in front(3). If it's to the left, then turn the robot
+    to the left. If it's to the right, then turn the robot to the right. If it's to the front, then go straight.
+    """
 
     rospy.init_node("move_to_beacon", anonymous = True)
     pub = rospy.Publisher("motor_control", Twist, queue_size = 1)
     gripper_pub = rospy.Publisher("actuate_gripper", Bool, queue_size = 1)
-    #rospy.Subscriber("vive_pose", TwistStamped, save_robot_angle)
     rospy.Subscriber("sensor_data", SensorData, save_beacon_info)
     rospy.Subscriber("scan", LaserScan, save_obstacle_distance)
     rospy.Subscriber("mode_activation", ModeActivation, modeActivationCallback)
@@ -71,11 +69,15 @@ def move_to_beacon():
 
     while not rospy.is_shutdown():
         
+        # check to make sure that this node has been activated
         if g.isActivated:
             if g.has_data():
 
+                # initialize the velocity message to send to the motors
                 motor_msg = Twist()
 
+                # if we have detected the beacon, then spin left, right, or go
+                # straight depending on where it is
                 if g.beacon_angle != 0:
                     if g.beacon_angle == 1:
                         motor_msg.linear.x = 0
@@ -85,14 +87,23 @@ def move_to_beacon():
                         motor_msg.angular.z = -0.1
                     else:
                         motor_msg.angular.z = 0
+
+                        # if we see that the lidar reading says it's more than 0.2 meters 
+                        # in front, then we move at a rate proportional to how far away
+                        # we are from it
                         if g.obstacle_distance > 0.2:
                             motor_msg.linear.x = min(0.2, g.obstacle_distance-0.05)
+
+                        # if we're closer than 0.2 meters from it, then stop and tell the gripper
+                        # to close
                         else:
                             motor_msg.linear.x = 0
                             actuate_gripper_msg = Bool()
                             actuate_gripper_msg.data = True
                             gripper_pub.publish(actuate_gripper_msg)
 
+                # if the beacon_angle is equal to 0, then we haven't detected it. in that
+                # case, then we just keep spinning
                 else:
                     motor_msg.angular.z = 0.09
                     motor_msg.linear.x = 0

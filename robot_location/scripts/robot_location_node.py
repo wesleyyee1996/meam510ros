@@ -63,8 +63,6 @@ def sensor_data_callback(sensor_data):
 
         theta = 2*math.pi-theta
 
-        #print(theta)
-
         orientation = theta - math.pi/2
         if orientation < 0:
             orientation += 2*math.pi

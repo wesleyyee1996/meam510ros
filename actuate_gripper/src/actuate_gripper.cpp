@@ -14,11 +14,13 @@
 bool close_gripper = false;
 bool isActivated = false;
 
+// callback fxn for actuate_gripper messages
 void actuateGripperCallback(const std_msgs::Bool::ConstPtr& msg) {	
 	close_gripper = msg->data;
 	
 }
 
+// callback fxn for mode_activation messages
 void modeActivationCallback(const decision_making::ModeActivation::ConstPtr& mode_active_msg) {
 	isActivated = mode_active_msg->gripper_closed;
 }
@@ -28,10 +30,16 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nh;
 	ROS_INFO("Actuate gripper node starting up!");
 
+	// subscribe to actuate_gripper topic
 	ros::Subscriber sub = nh.subscribe("actuate_gripper", 1, actuateGripperCallback);
+
+	// setup publisher to has_grabbed_can topic
 	ros::Publisher has_grabbed_can_pub = nh.advertise<std_msgs::Bool>("has_grabbed_can", 1);
 	
+	// subscribe to mode_activation topic
 	ros::Subscriber mode_active_sub = nh.subscribe("mode_activation", 1, modeActivationCallback);
+
+	// setup wiringPi library
 	wiringPiSetupGpio();
 
 	// setup PWM 
@@ -43,20 +51,20 @@ int main(int argc, char **argv) {
 	std_msgs::Bool has_grabbed_can_msg;
 	ros::Rate loop_rate(50);
 	while (ros::ok()) {
+
+		// if receive an activation message, then open the gripper
 		if (isActivated) {
 			softPwmWrite(GRIPPER_PWM_PIN, 12.5);
-			//ROS_INFO("Gripper closing!");
-			//std::cout << CLOSE_POSITION_PWM << std::endl;
 
 			if (!digitalRead(HAS_GRABBED_CAN_PIN)){
 				has_grabbed_can_msg.data = true;
 			}
 
 		}
+
+		// if receive a close message, then close the gripper
 		else {
 			softPwmWrite(GRIPPER_PWM_PIN, 7.5);
-			//ROS_INFO("Gripper opening!");
-			//std::cout << OPEN_POSITION_PWM << std::endl;
 		}
 		loop_rate.sleep();
 		ros::spinOnce();

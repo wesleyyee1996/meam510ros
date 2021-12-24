@@ -2,6 +2,9 @@
 #include <wiringPi.h>
 #include <std_msgs/Bool.h>
 
+// This node checks to see if we have received a UDP command messages from the computer
+// If we haven't received any 5 seconds or more, then we turn on the green LED
+
 ros::Time last_update_time;
 
 void ledSignalCallback(const std_msgs::Bool::ConstPtr& msg) {
@@ -32,7 +35,6 @@ int main(int argc, char **argv) {
 	while (ros::ok()) {
 		
 		ros::Duration elapsed_time = ros::Time::now() - last_update_time;
-		//std::cout << elapsed_time.toSec() << std::endl;
 		// if we haven't received any command data from computer in 5 seconds, then turn on LED
 		if (elapsed_time.toSec() > 5.0) {
 			digitalWrite(led_signal_pin, HIGH);

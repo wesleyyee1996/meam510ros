@@ -5,6 +5,9 @@ import rospy
 from geometry_msgs.msg import Twist
 
 class DetectCans:
+    """
+    Node to detect cans. We didn't end up using this
+    """
     def __init__(self):
         self.map_width = 1600
         self.map_height = 1600
@@ -47,6 +50,10 @@ class DetectCans:
         plt.show()
 
     def cluster_segments(self):
+        """
+        Finds clusters of points. In order to pass this function, points next to each other must not exceed
+        an absolute difference in length of the diff_tolerance
+        """
         i = 0
         while i < len(self.data):
             j = i+1
@@ -58,8 +65,12 @@ class DetectCans:
             i = j+1
 
     def validate_arc(self):
+        """
+        A higher level validation function which sees if a given cluster matches
+        up with the general shape of a semicircular object. Just filters so the detect
+        function doesn't have to run for all clusters
+        """
         for cluster in self.clusters:
-            # if cluster[0] == 59 and cluster[1] == 69:
             left_idx = cluster[1]
             right_idx = cluster[0]
             mid_idx = (right_idx-left_idx)//2+left_idx
@@ -80,10 +91,17 @@ class DetectCans:
         return math.sqrt((x1-x2)**2+(y1-y2)**2)
 
     def rotate(self, x, y, angle):
+        """
+        Rotate the given point by a certain angle in radians
+        """
         return [x*math.cos(angle)-y*math.sin(angle), x*math.sin(angle)+y*math.cos(angle)]
 
     def detect(self):
+        
+        # after finding the good clusters, then use least squares to determine if the cluster
+        # is actually a can or not
         for cluster in self.good_clusters:
+
             x = np.array(self.raw_x_pts[cluster[0]:cluster[1]])
             y = np.array(self.raw_y_pts[cluster[0]:cluster[1]])
             # print(x,y)

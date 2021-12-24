@@ -4,6 +4,8 @@
 #include "sensor_msgs/LaserScan.h"
 #include "decision_making/ModeActivation.h"
 
+// Node for doing wall following
+
 class WallFollow {
 
 	public:
@@ -12,47 +14,48 @@ class WallFollow {
 		int upper_angle = 60;
 		int theta = 60;
 
-		float Dt = 0;
-		float L = 0.2;
-		float alpha = 0;
+		float Dt = 0; // estimated distance in the future at distance L based on current angle alpha
+		float L = 0.2; // lookahead distance
+		float alpha = 0; // current angle from the wall
 		float Dt_future = 0;
-		int steering_angle = 0;
+		int steering_angle = 0; // desired steering angle for error correction
 
 		float error = 0;
 		float prev_error = 0;
 		int integral = 0;
 
-		float Kp = 0.6;
+		float Kp = 0.6; // Kp
 
 
-		float stop_distance = 0.4;
-		float min_valid_distance = 0.1;
-		float max_angular_vel = 0.15;
-		float default_linear_vel = 0.2;
+		float stop_distance = 0.4; // stop distance from the wall for us to turn left
+		float min_valid_distance = 0.1; // minimum valid distance that we read from the lidar
+		float max_angular_vel = 0.15; // the maximum angular velocity that we will tell the robot to turn
+		float default_linear_vel = 0.2; // default linear velocity to go forward
 
-		int ydlidar_scan_range = 448;
+		int ydlidar_scan_range = 448; // size of the lidar scan array
 
-		int wall_following_on = 0;
+		int wall_following_on = 0; 
 
 		ros::Publisher* wall_follow_pub;
 
 		bool isActivated = false;
 
+	
 	void save_pub(ros::Publisher* pub_ptr) {
 		wall_follow_pub = pub_ptr;
 	}
 
+
 	void wall_follow_step(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
+
+		// first check to see if we have been activated or not
 		if (isActivated) {
-			
 		
 			float dist_front = getAvgDistanceAtAngle(90,4, scan_msg);
 			float dist_front_left_1 = getAvgDistanceAtAngle(100,4, scan_msg);
 			float dist_front_left_2 = getAvgDistanceAtAngle(110,4, scan_msg);
 
 			geometry_msgs::Twist drive_msg;
-
-			//ROS_INFO("Dist front: {%f}: ", dist_front);
 
 			// if we need to turn at a corner
 			if (dist_front < stop_distance && dist_front_left_1 < sqrt(pow(stop_distance,2)+pow(sin(10)*stop_distance,2)) && dist_front_left_2 < sqrt(pow(stop_distance,2))+pow(sin(20)*stop_distance,2)) {
@@ -66,13 +69,11 @@ class WallFollow {
 				
 				float dist_a = getAvgDistanceAtAngle(upper_angle, 4, scan_msg);
 				Dt_future = calculateFutureDistance(dist_a, dist_b, theta);
-				//ROS_INFO("Future distance: %f", Dt_future);
 				float error = DESIRED_DISTANCE_FROM_WALL - Dt_future;
 				float angular_vel = p_control(error);
 				drive_msg.linear.x = default_linear_vel;
 				drive_msg.angular.z = angular_vel;
 				wall_follow_pub->publish(drive_msg);
-				//ROS_INFO("Straight wall, angular vel: {%f}", angular_vel);
 			}
 		}
 	}

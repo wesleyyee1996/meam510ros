@@ -110,6 +110,9 @@ def mode_activation_callback(msg):
     g.isActivated = msg.move_to_vive_can_on
 
 def listener():
+    """
+    This node moves the robot to the vive can. 
+    """
 
     rospy.init_node("move_to_vive_can", anonymous = True)
     pub = rospy.Publisher("motor_control", Twist, queue_size = 1)
@@ -127,10 +130,13 @@ def listener():
 
     while not rospy.is_shutdown():
         
+        # first make sure that this node has been activated
         if g.isActivated:
             if g.has_data():
 
-                [distance,angle] = driving_direction();
+                # calculate the desired orientation to turn to based on the can's location as well 
+                # as our location and current orientation. also calculate can's distance from robot
+                [distance,angle] = driving_direction()
 
                 curr_time = rospy.Time().to_sec()
 
@@ -139,8 +145,9 @@ def listener():
                 angle_float = float(angle) 
                 vive_float = float(g.vive_angle)
                 angle_diff = angle_float - vive_float
-                
 
+                # if we're over 1000 vive units away from the can, then keep turn left if our current angle
+                # and desired angle is greater than or less than 0.15 radians. Otherwise, move forward
                 if distance > 1000:
                     print("outside of radius")
                     if angle_diff > 0.15 and distance > 100:
@@ -155,6 +162,7 @@ def listener():
                         motor_msg.linear.x = min(0.2, (distance-100)*0.001)
                         # we have reached the can, so grab the gripper 
 
+                # if we're less than 1000 vive units away from the can, then move straight to the can
                 else:
                     if angle_diff > 0.1 and not straight_shot:
                         motor_msg.linear.x = 0
@@ -163,11 +171,16 @@ def listener():
                         motor_msg.linear.x = 0
                         motor_msg.angular.z = -0.15+0.01*angle_diff/math.pi
                     else:
+
+                        # now it's right in front. we want to set straight shot to be true since if we're too
+                        # close to the can we don't want to accidentally keep turning and knock over the can
                         print("Straight shot")
                         straight_shot = True
                         if g.obstacle_distance > 0.2:
                             motor_msg.linear.x = 0.11
                         else:
+
+                            # once we've reached the can, stop and then instruct the gripper to close
                             motor_msg.linear.x = 0
                             grab_can_msg = Bool()
                             grab_can_msg.data = True

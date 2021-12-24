@@ -10,6 +10,9 @@ hostname = "192.168.0.171"
 port = 8080
 
 class ModeMsgClass:
+    """
+    Class to hold some logic variables for this node
+    """
     def __init__(self):
         self.mode_active_msg = ModeActivation()
         self.grabbed_can = False
@@ -17,6 +20,9 @@ mode = ModeMsgClass()
 
 
 def build_webpage():
+    """
+    A really jank way to build the html for the webpage. This was done on the day before the competition at like 12:30am... X_X
+    """
     body = "<html><body>"
     body += "<div><a href=\"/toggle_gripper?"
     if mode.mode_active_msg.gripper_closed:
@@ -76,6 +82,11 @@ def build_webpage():
 class MyServer(BaseHTTPRequestHandler):
 
     def do_GET(self):
+        """
+        If we get various GET requests, check the path. If the last character in the path is a 1, that means that 
+        mode has been activated. If it's a 0, that means that mode has been de-activated. Once a given mode is activated
+        the other modes are deactivated
+        """
         if '/toggle_gripper' in self.path:
             is_on = int(self.path[-1])
             print("Gripper: ", is_on)
